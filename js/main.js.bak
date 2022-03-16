@@ -1,0 +1,310 @@
+const db = window.localStorage;
+
+// First visit setup
+if (db.length < 1) {
+	const account = {
+		characterCount: 0,
+		tasks: {
+			daily: [
+				{
+					title: 'Rapport: Play Instrument',
+					count_total: 5,
+					count_progress: 0,
+				},
+				{
+					title: 'Rapport: Emote',
+					count_total: 5,
+					count_progress: 0,
+				},
+				{
+					title: 'Chaos Gate',
+					count_total: 1,
+					count_progress: 0,
+				},
+				{
+					title: 'Field Boss',
+					count_total: 1,
+					count_progress: 0,
+				},
+				{
+					title: 'Adventure Island',
+					count_total: 1,
+					count_progress: 0,
+				},
+			],
+			weekly: [
+				{
+					title: 'Ghost Ship',
+					count: 1,
+				},
+			],
+		},
+	};
+	const sampleCharacter = {
+		name: 'Sample',
+		class: 'gunslinger',
+		order: account.characterCount++,
+		tasks: {
+			daily: [
+				{
+					title: "Una's Tasks",
+					count_total: 3,
+					count_progress: 0,
+				},
+				{
+					title: 'Chaos Dungeon',
+					count_total: 2,
+					count_progress: 0,
+				},
+				{
+					title: 'Guardian Raids',
+					count_total: 2,
+					count_progress: 0,
+				},
+				{
+					title: 'Guild Check-In',
+					count_total: 1,
+					count_progress: 0,
+				},
+			],
+			weekly: [
+				{
+					title: 'Abyssal Dungeon',
+					count_total: 1,
+					count_progress: 0,
+				},
+			],
+		},
+	};
+
+	const characters = [];
+	characters.push(sampleCharacter);
+	characters.push(sampleCharacter);
+	characters.push(sampleCharacter);
+	characters.push(sampleCharacter);
+	characters.push(sampleCharacter);
+	characters.push(sampleCharacter);
+	console.log(account.characterCount);
+
+	db.setItem('account', JSON.stringify(account));
+	db.setItem(`characters`, JSON.stringify(characters));
+}
+
+const ACCOUNT = JSON.parse(db.getItem('account'));
+const CHARACTERS = JSON.parse(db.getItem('characters'));
+
+// =============================================================================
+// Header
+// =============================================================================
+// =======================================
+// Task View Toggle
+// =======================================
+const dailyView = document.querySelector('.daily-view');
+const weeklyView = document.querySelector('.weekly-view');
+
+// Switches to view daily tasks
+dailyView.addEventListener('click', () => {
+	weeklyView.classList.remove('active');
+	dailyView.classList.add('active');
+
+	document.querySelectorAll('.task.weekly').forEach((task) => {
+		task.classList.add('hide');
+	});
+	document.querySelectorAll('.task.daily').forEach((task) => {
+		task.classList.remove('hide');
+	});
+});
+
+// Switches to view weekly tasks
+weeklyView.addEventListener('click', () => {
+	dailyView.classList.remove('active');
+	weeklyView.classList.add('active');
+
+	document.querySelectorAll('.task.daily').forEach((task) => {
+		task.classList.add('hide');
+	});
+	document.querySelectorAll('.task.weekly').forEach((task) => {
+		task.classList.remove('hide');
+	});
+});
+
+// =======================================
+// Timers
+// =======================================
+const SECONDS_IN_DAY = 86400;
+const SECONDS_IN_WEEK = 604800;
+const RESET_TIME = 36000;
+
+const dailyTimer = document.querySelector('.daily-timer .timer');
+const weeklyTimer = document.querySelector('.weekly-timer .timer');
+const timer = setInterval(() => {
+	const ms = Date.now();
+	let s = Math.floor(ms / 1000);
+
+	const countdownDaily =
+		s % SECONDS_IN_DAY > RESET_TIME
+			? SECONDS_IN_DAY - (s % SECONDS_IN_DAY) + RESET_TIME
+			: RESET_TIME - (s % SECONDS_IN_DAY);
+	const countdownWeekly =
+		s % SECONDS_IN_WEEK > RESET_TIME
+			? SECONDS_IN_WEEK - (s % SECONDS_IN_WEEK) + RESET_TIME
+			: RESET_TIME - (s % SECONDS_IN_WEEK);
+
+	countdownS = countdownDaily % 60;
+	countdownM = Math.floor(countdownDaily / 60) % 60;
+	countdownDailyH = Math.floor(countdownDaily / 60 / 60) % 24;
+	countdownWeeklyH = Math.floor(countdownWeekly / 60 / 60) % 24;
+	countdownWeeklyD = Math.floor(countdownWeekly / 60 / 60 / 24);
+
+	dailyTimer.innerHTML = `
+	  ${countdownDailyH < 10 ? '0' + countdownDailyH : countdownDailyH}:<!--
+    -->${countdownM < 10 ? '0' + countdownM : countdownM}:<!--
+    -->${countdownS < 10 ? '0' + countdownS : countdownS}
+	`;
+
+	weeklyTimer.innerHTML = `
+    ${countdownWeeklyD}:<!--
+    -->${countdownWeeklyH < 10 ? '0' + countdownWeeklyH : countdownWeeklyH}:<!--
+    -->${countdownM < 10 ? '0' + countdownM : countdownM}:<!--
+    -->${countdownS < 10 ? '0' + countdownS : countdownS}
+  `;
+}, 1000);
+
+const resetTasksProgress = (view) => {
+	ACCOUNT.tasks[view].forEach((task) => {
+		task.count_progress = 0;
+	});
+	CHARACTERS.forEach((character) => {
+		character.tasks[view].forEach((task) => {
+			task.count_progress = 0;
+		});
+	});
+
+	document.querySelectorAll('.task.daily').forEach((task) => {
+		task.querySelector('progress').value = 0;
+		task.classList.remove('complete');
+	});
+};
+// =============================================================================
+// Cards Carousel
+// =============================================================================
+// =======================================
+// Populate Carousel
+// =======================================
+const carousel = document.querySelector('.card-carousel');
+// const view = document.querySelector('.tasks-view').querySelector('.active').textContent.toLowerCase();
+
+const populateCarousel = () => {
+	carousel.innerHTML += `
+    <!-- Add new character card -->
+    <li class="card create">
+      <span class="add-decoration"></span>
+    </li>
+
+    <!-- Account card -->
+    ${generateAccountCard()}
+    <!-- Character cards -->
+    ${CHARACTERS.map((character) => {
+			return generateCharacterCard(character);
+		}).join('')}
+  `;
+};
+
+const generateAccountCard = () => {
+	return `
+    <li class="card account">
+      <section class="profile bg logo">
+        <i class="fas fa-edit"></i>
+      </section>
+      <section>
+        <ul class="todo-list">
+          <li class="create-task add-decoration"></li>
+          ${populateTasks(ACCOUNT, 'daily')}
+          ${populateTasks(ACCOUNT, 'weekly')}
+        </ul>
+      </section>
+    </li>
+  `;
+};
+
+const generateCharacterCard = (character) => {
+	return `
+    <li class="card character">
+      <section class="profile bg ${character.class}">
+        <i class="fas fa-edit"></i>
+        <h2 class="name">${character.name}</h2>
+      </section>
+      <section>
+        <ul class="todo-list">
+          <li class="create-task add-decoration"></li>
+          ${populateTasks(character, 'daily')}
+          ${populateTasks(character, 'weekly')}
+        </ul>
+      </section>
+    </li>
+  `;
+};
+
+const populateTasks = (owner, view) => {
+	return owner['tasks'][view]
+		.map((task) => {
+			return `<li class="task ${view}">
+        <p>${task.title}</p>
+        <progress max="${task.count_total}" value="${task.count_progress}"></progress>
+      </li>`;
+		})
+		.join('');
+};
+
+// =======================================
+// Create New Task
+// =======================================
+
+populateCarousel();
+dailyView.click();
+
+// =======================================
+// Tasks Interaction
+// =======================================
+//  Increment or decrement task progress when CLICK
+document.querySelectorAll('.task').forEach((task) => {
+	task.addEventListener('click', (e) => {
+		prog_bar = task.querySelector('progress');
+
+		cardOwner = e.target.parentElement.parentElement.parentElement;
+		if (cardOwner.classList.contains('card character')) {
+			const cardName = cardOwner.querySelector('.name').textContent;
+			CHARACTERS.forEach((character) => {
+				if (character.name === cardName) {
+					character.view;
+				}
+			});
+		}
+
+		if (e.altKey) {
+			if (prog_bar.value > 0) prog_bar.value--;
+			task.classList.remove('complete');
+		} else {
+			if (prog_bar.value < prog_bar.max) {
+				prog_bar.value++;
+			}
+			if (prog_bar.value == prog_bar.max) task.classList.add('complete');
+		}
+	});
+});
+
+// =============================================================================
+// Modal
+// =============================================================================
+const btn_add_char = document.querySelector('.card.create');
+btn_add_char.addEventListener('click', () => {
+	const modal = document.querySelector('.modal');
+	modal.addEventListener('click', (e) => {
+		if (!e.target === this) {
+			modal.classList.add('hide');
+			modal.querySelector('.add-char').classList.add('hide');
+		}
+	});
+	modal.classList.remove('hide');
+	modal.querySelector('.add-char').classList.remove('hide');
+});

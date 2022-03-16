@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Lost Ark TODO</title>
+
+		<!-- Google fonts - Roboto & Roboto Mono-->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Roboto&family=Roboto+Mono&display=swap" rel="stylesheet" />
+		<!-- Font Awesome 5 -->
+		<script src="https://kit.fontawesome.com/6ffd71a7ad.js" crossorigin="anonymous"></script>
+		<!-- Normalize all CSS between browser and link own stylesheet -->
+		<link rel="stylesheet" href="css/normalize.css" />
+		<link rel="stylesheet" href="css/main.css" />
+	</head>
+	<body>
+		<div class="modal" id="modal">
+			<div class="modal-bg exit"></div>
+			<div class="create-character-form hide">
+				<form>
+					<input type="text" name="character-name" maxlength="16" placeholder="Character Name" required />
+
+					<p>Select your character's class.</p>
+					<section class="class-selection">
+						<label>
+							<input type="radio" name="class-select" value="berserker" required />
+							<section>
+								<img src="img/class_icons/berserker.webp" />
+								<p>Berserker</p>
+							</section>
+						</label>
+						<label>
+							<input type="radio" name="class-select" value="paladin" required />
+							<section>
+								<img src="img/class_icons/paladin.webp" />
+								<p>Paladin</p>
+							</section>
+						</label>
+						<label>
+							<input type="radio" name="class-select" value="gunlancer" required />
+							<section>
+								<img src="img/class_icons/gunlancer.webp" />
+								<p>Gunlancer</p>
+							</section>
+						</label>
+						<!-- Martial Artists -->
+						<label>
+							<input type="radio" name="class-select" value="wardancer" required />
+							<section>
+								<img src="img/class_icons/wardancer.webp" />
+								<p>Wardancer</p>
+							</section>
+						</label>
+						<label>
+							<input type="radio" name="class-select" value="scrapper" required />
+							<section>
+								<img src="img/class_icons/scrapper.webp" />
+								<p>Scrapper</p>
+							</section>
+						</label>
+						<label>
+							<input type="radio" name="class-select" value="soulfist" required />
+							<section>
+								<img src="img/class_icons/soulfist.webp" />
+								<p>Soulfist</p>
+							</section>
+						</label>
+						<label>
+							<input type="radio" name="class-select" value="striker" required />
+							<section>
+								<img src="img/class_icons/striker.webp" />
+								<p>Striker</p>
+							</section>
+						</label>
+						<!-- Gunners -->
+						<label>
+							<input type="radio" name="class-select" value="gunslinger" required />
+							<section>
+								<img src="img/class_icons/gunslinger.webp" />
+								<p>Gunslinger</p>
+							</section>
+						</label>
+						<label>
+							<input type="radio" name="class-select" value="deadeye" required />
+							<section>
+								<img src="img/class_icons/deadeye.webp" />
+								<p>Deadeye</p>
+							</section>
+						</label>
+						<label>
+							<input type="radio" name="class-select" value="artillerist" required />
+							<section>
+								<img src="img/class_icons/artillerist.webp" />
+								<p>Artillerist</p>
+							</section>
+						</label>
+						<label>
+							<input type="radio" name="class-select" value="sharpshooter" required />
+							<section>
+								<img src="img/class_icons/sharpshooter.webp" />
+								<p>Sharpshooter</p>
+							</section>
+						</label>
+						<!-- Mages -->
+						<label>
+							<input type="radio" name="class-select" value="sorceress" required />
+							<section>
+								<img src="img/class_icons/sorceress.webp" />
+								<p>Sorceress</p>
+							</section>
+						</label>
+						<label>
+							<input type="radio" name="class-select" value="bard" required />
+							<section>
+								<img src="img/class_icons/bard.webp" />
+								<p>Bard</p>
+							</section>
+						</label>
+						<!-- Assassins -->
+						<label>
+							<input type="radio" name="class-select" value="deathblade" required />
+							<section>
+								<img src="img/class_icons/deathblade.webp" />
+								<p>Deathblade</p>
+							</section>
+						</label>
+						<label>
+							<input type="radio" name="class-select" value="shadowhunter" required />
+							<section>
+								<img src="img/class_icons/shadowhunter.webp" />
+								<p>Shadowhunter</p>
+							</section>
+						</label>
+					</section>
+					<input type="submit" value="Add Character" />
+				</form>
+			</div>
+			<div class="create-task hide">
+				<form>
+					<input type="text" name="task-title" placeholder="Task Description" required />
+					<input type="number" name="task-count" placeholder="Count" min="1" required />
+					<p>* Count represents the maximum number of completions allotted before reset.</p>
+					<input type="submit" value="Add Task" />
+				</form>
+			</div>
+		</div>
+
+		<header>
+			<ul class="tasks-view">
+				<li class="view daily active"><p>Daily</p></li>
+				<li class="view weekly"><p>Weekly</p></li>
+			</ul>
+			<ul class="timer daily">
+				<li><p>Daily Reset</p></li>
+				<li><i class="fa-solid fa-clock"></i></li>
+				<li><p class="timer">00:00:00</p></li>
+			</ul>
+			<ul class="timer weekly">
+				<li><p>Weekly Reset</p></li>
+				<li><i class="fa-solid fa-clock"></i></li>
+				<li><p class="timer">0:00:00:00</p></li>
+			</ul>
+		</header>
+
+		<ul class="card-carousel"></ul>
+
+		<script src="js/main.js"></script>
+	</body>
+</html>
