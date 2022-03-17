@@ -1,3 +1,23 @@
+// --- GLOBAL VARIABLES ---
+const local_storage = window.localStorage;
+let account = local_storage.getItem('account');
+const class_list = [
+	'berserker',
+	'gunlancer',
+	'paladin',
+	'scrapper',
+	'soulfist',
+	'striker',
+	'artillerist',
+	'deadeye',
+	'gunslinger',
+	'sharpshooter',
+	'bard',
+	'sorceress',
+	'deathblade',
+	'shadowhunter',
+];
+
 // --- OBJECTS ---
 class Todo {
 	constructor() {
@@ -27,20 +47,26 @@ class Todo {
 
 	// Adding new tasks
 	addDailyTask(task) {
-		task.setID;
 		this.tasks.daily.push(task);
+
+		UpdateLocalStorage();
+		PopulateCarousel();
 	}
 	addWeeklyTask(task) {
 		this.tasks.weekly.push(task);
+
+		UpdateLocalStorage();
+		PopulateCarousel();
 	}
+	// TODO
 	removeDailyTask(target_task) {
 		const tasks = this.getDailyTasks();
 		const task_index = tasks.findIndex((task) => task.equals(target_task));
 
 		this.tasks.daily.splice(task_index, 1);
-		UpdateLocalStorage(account);
 
-		PopulateCarousel(account);
+		UpdateLocalStorage();
+		PopulateCarousel();
 	}
 	resetDailyTasks() {
 		this.tasks['daily'].forEach((task) => (task.count_progress = 0));
@@ -74,15 +100,16 @@ class Account extends Todo {
 
 	updateLastVisited() {
 		this.last_visited = Math.floor(Date.now() / 1000);
-		UpdateLocalStorage(this);
+
+		UpdateLocalStorage();
 	}
 	addCharacter(character) {
 		character.setID(++this.id_count);
 		character.setOrder(this.id_count);
 		this.characters[this.id_count] = character;
-		UpdateLocalStorage(this);
 
-		PopulateCarousel(this);
+		UpdateLocalStorage();
+		PopulateCarousel();
 	}
 
 	// Adds rapport tasks, chaos gate, adventure island, and ghost ship
@@ -98,6 +125,7 @@ class Character extends Todo {
 	/**
 	 * Create a new character.
 	 * @param {string} char_name The name of the character
+	 * @param {string} job The character's class
 	 */
 	constructor(char_name, job) {
 		super();
@@ -152,32 +180,35 @@ class Task {
 	}
 	setTitle(title) {
 		this.title = title;
-		UpdateLocalStorage(this);
+
+		UpdateLocalStorage();
 	}
 	getCountTotal() {
 		return this.count_total;
 	}
 	setCountTotal(count_total) {
 		this.count_total = count_total;
-		UpdateLocalStorage(this);
+
+		UpdateLocalStorage();
 	}
 	getCountProgress() {
 		return this.count_progress;
 	}
 	setCountProgress(count_progress) {
 		this.count_progress = count_progress;
-		UpdateLocalStorage(account);
+
+		UpdateLocalStorage();
 	}
 
 	incrementCount() {
 		if (this.count_progress < this.count_total) {
 			this.count_progress++;
 		}
-		UpdateLocalStorage(account);
+		UpdateLocalStorage();
 	}
 	decrementCount() {
 		if (this.count_progress > 0) this.count_progress--;
-		UpdateLocalStorage(account);
+		UpdateLocalStorage();
 	}
 	equals(target_task) {
 		return (
@@ -189,46 +220,46 @@ class Task {
 }
 
 // --- HELPER FUNCTIONS ---
-const UpdateLocalStorage = (obj) => {
-	local_storage.setItem('account', JSON.stringify(obj));
+const UpdateLocalStorage = () => {
+	local_storage.setItem('account', JSON.stringify(account));
 };
 /**
  * Resets all daily tasks to have count_progress of 0.
- * @param {Account} obj Stored account data
  */
-const ResetDailyTasks = (obj) => {
+const ResetDailyTasks = () => {
 	// Reset accoutn dailies
-	obj.resetDailyTasks();
+	account.resetDailyTasks();
 	// Reset characters dailies
-	Object.keys(obj.characters).forEach((id) => {
-		obj.characters[id].resetDailyTasks();
+	Object.keys(account.characters).forEach((id) => {
+		account.characters[id].resetDailyTasks();
 	});
 
 	// Update progress bars
 	document.querySelectorAll('.task.daily').forEach((task) => {
 		task.querySelector('progress').value = 0;
+		task.classList.remove('complete');
 	});
 
-	UpdateLocalStorage(account);
+	UpdateLocalStorage();
 };
 /**
  * Resets all weekly tasks to have count_progress of 0.
- * @param {Account} obj Stored account data
  */
-const ResetWeeklyTasks = (obj) => {
+const ResetWeeklyTasks = () => {
 	// Reset account weeklies
-	obj.resetWeeklyTasks();
+	account.resetWeeklyTasks();
 	// Reset characters weeklies
-	Object.keys(obj.characters).forEach((id) => {
-		obj.characters[id].resetWeeklyTasks();
+	Object.keys(account.characters).forEach((id) => {
+		account.characters[id].resetWeeklyTasks();
 	});
 
 	// Update progress bars
 	document.querySelectorAll('.task.weekly').forEach((task) => {
 		task.querySelector('progress').value = 0;
+		task.classList.remove('complete');
 	});
 
-	UpdateLocalStorage(account);
+	UpdateLocalStorage();
 };
 
 /**
@@ -274,50 +305,49 @@ const ParseJSONTasks = (parse, fixed_parse) => {
 
 /**
  * Takes data from Account and generates cards to populate carousel.
- * @param {Account} obj
  */
-const PopulateCarousel = (obj) => {
+const PopulateCarousel = () => {
 	const carousel = document.querySelector('.card-carousel');
 
 	carousel.innerHTML = GenerateCreateCardHTML();
-	carousel.innerHTML += GenerateAccountCardHTML(obj);
-	Object.keys(obj.characters).forEach((id) => {
+	carousel.innerHTML += GenerateAccountCardHTML();
+	Object.keys(account.characters).forEach((id) => {
 		carousel.innerHTML += GenerateCharacterCardHTML(account.characters[id]);
 	});
 
 	// Enable interactions with tasks
-	HandleTasks(obj);
+	HandleTasks();
 	// Enable toggling of Daily and Weekly tasks
-	HandleViews(obj);
-	// Enable user to create new characters and tasks
-	HandleCreateButtons(obj);
+	HandleViews();
+	// Enables create and edit functionalities
+	GenerateModal();
 };
 const GenerateCreateCardHTML = () => {
 	return `
     <!-- Add new character card -->
-    <li class="create-card btn create">
+    <li class="create-card card btn create">
       <span class="add-decoration"></span>
     </li>
   `;
 };
-const GenerateAccountCardHTML = (obj) => {
+const GenerateAccountCardHTML = () => {
 	return `
     <li class="card account">
       <section class="profile bg logo">
         <i class="fas fa-edit"></i>
       </section>
-      ${GenerateTodoList(obj)}
+      ${GenerateTodoList(account)}
     </li>
   `;
 };
-const GenerateCharacterCardHTML = (obj) => {
+const GenerateCharacterCardHTML = (character) => {
 	return `
     <li class="card character">
-      <section class="profile bg ${obj.getClass()}">
+      <section class="profile bg ${character.getClass()}">
         <i class="fas fa-edit"></i>
-        <h2 class="name">${obj.getName()}</h2>
+        <h2 class="name">${character.getName()}</h2>
       </section>
-      ${GenerateTodoList(obj)}
+      ${GenerateTodoList(character)}
     </li>
   `;
 };
@@ -325,7 +355,7 @@ const GenerateTodoList = (obj) => {
 	return `
     <section>
       <ul class="todo-list">
-        <li class="create-task create btn add-decoration"></li>
+        <li class="create-task create btn add-decoration" data-card-id="${obj.getID()}"></li>
         ${PopulateTasks(obj)}
       </ul>
     </section>
@@ -341,7 +371,7 @@ const GenerateTasksHTML = (view, tasks, id) => {
 	return tasks
 		.map((task) => {
 			return `
-      <li class="task ${view} ${task.count_progress === task.count_total ? 'complete' : ''}" data-card-id="${id}">
+      <li class="task ${view} ${task.count_progress == task.count_total ? 'complete' : ''}" data-card-id="${id}">
         <p>${task.title}</p>
         <progress max="${task.count_total}" value="${task.count_progress}"></progress>
       </li>
@@ -352,24 +382,23 @@ const GenerateTasksHTML = (view, tasks, id) => {
 
 /**
  * Adds event listeners to tasks for updating progress.
- * @param {Account} obj
  */
-const HandleTasks = (obj) => {
+const HandleTasks = () => {
 	const tasks = document.querySelectorAll('.task');
 	tasks.forEach((task) => {
 		if (!task.getAttribute('listener')) {
-			task.addEventListener('click', HandleTaskEvents.bind(event, obj, task));
+			task.addEventListener('click', HandleTaskEvents.bind(event, task));
 			task.setAttribute('listener', true);
 		}
 	});
 };
-const HandleTaskEvents = (obj, task, e) => {
+const HandleTaskEvents = (task, e) => {
 	const view = document.querySelector('.tasks-view').querySelector('.active').textContent.toLowerCase();
 	const progress_bar = task.querySelector('progress');
 	const card_id = task.dataset.cardId;
 	const target_task = HTMLtoTask(task);
 
-	const tasks = card_id > 0 ? obj.characters[card_id].tasks[view] : obj.tasks[view];
+	const tasks = card_id > 0 ? account.characters[card_id].tasks[view] : account.tasks[view];
 	const task_index = FindTaskIndex(tasks, target_task);
 
 	if (!e.altKey) {
@@ -388,7 +417,7 @@ const HandleTaskEvents = (obj, task, e) => {
 		}
 	}
 
-	UpdateLocalStorage(obj);
+	UpdateLocalStorage();
 };
 const HTMLtoTask = (element) => {
 	return new Task(
@@ -397,8 +426,8 @@ const HTMLtoTask = (element) => {
 		element.querySelector('progress').value
 	);
 };
-const FindTaskIndex = (obj, target_task) => {
-	return obj.findIndex((task) => task.equals(target_task));
+const FindTaskIndex = (task_list, target_task) => {
+	return task_list.findIndex((task) => task.equals(target_task));
 };
 
 /**
@@ -438,9 +467,8 @@ const ShowTasks = (view) => {
 
 /**
  * Updates timers and resets tasks progress if needed.
- * @param {Account} obj
  */
-const HandleTimer = (obj) => {
+const HandleTimer = () => {
 	const daily_timer = document.querySelector('.timer.daily').querySelector('.timer');
 	const weekly_timer = document.querySelector('.timer.weekly').querySelector('.timer');
 
@@ -451,10 +479,14 @@ const HandleTimer = (obj) => {
 	// 604800 seconds in a week
 	const week_seconds = 604800;
 
-	setInterval(() => {
-		// obj.updateLastVisited();
-		// UpdateLocalStorage(obj);
+	if (Math.floor(Date.now() / 1000) - account.getLastVisited() > day_seconds) {
+		ResetDailyTasks();
+	}
+	if (Math.floor(Date.now() / 1000) - account.getLastVisited() > week_seconds) {
+		ResetWeeklyTasks();
+	}
 
+	setInterval(() => {
 		const now = Math.floor(Date.now() / 1000);
 		const now_relative_daily = now % day_seconds;
 		const now_relative_weekly = now % week_seconds;
@@ -463,13 +495,12 @@ const HandleTimer = (obj) => {
 		const time_remaining_weekly = TimeRemainingConvert(RESET_TIME, now_relative_weekly, week_seconds);
 
 		if (time_remaining_daily == 0) {
-			ResetDailyTasks(obj);
+			ResetDailyTasks();
 		}
 		if (time_remaining_weekly == 0) {
-			ResetWeeklyTasks(obj);
+			ResetWeeklyTasks();
 		}
 
-		//
 		const time_remaining_seconds = TimeStringConvert(time_remaining_daily % 60);
 		const time_remaining_minutes = TimeStringConvert(Math.floor(time_remaining_daily / 60) % 60);
 		const time_remaining_hours = TimeStringConvert(Math.floor(time_remaining_daily / 3600) % 24);
@@ -490,64 +521,158 @@ const TimeStringConvert = (time) => {
 	return time < 10 ? '0' + time : time;
 };
 
-const HandleCreateButtons = (obj) => {
+const GenerateModal = () => {
 	const modal = document.querySelector('#modal');
-	const create_character = document.querySelector('.create-character-form');
-	const create_btns = document.querySelectorAll('.create.btn');
+	// modal.replaceWith(modal.cloneNode(true));
+	modal.innerHTML = `
+  <div class="modal-bg exit"></div>
+  ${GenerateCreateCharacterForm()}
+  ${GenerateCreateTaskForm()}
+  <!-- ${GenerateEditModal()} -->
+  `;
+	HandleCreateButtons();
+	HandleCreateCharacterSubmit();
+	HandleCreateTaskSubmit();
+};
+const GenerateCreateCharacterForm = () => {
+	return `  
+    <div class="create-character-form hide">
+      <form>
+        <input type="text" name="character-name" maxlength="16" placeholder="Character Name" required />
 
-	create_btns.forEach((btn) => {
-		// User is creating a character
-		if (btn.classList.contains('create-card')) {
-			btn.addEventListener('click', () => {
-				modal.querySelector('.exit').addEventListener('click', () => {
-					modal.classList.remove('open');
-					create_character.classList.add('hide');
-				});
+        <p>Select your character's class.</p>
+        <section class="class-selection">
+          ${class_list
+						.map((job) => {
+							return GenerateClassButtonHTML(job);
+						})
+						.join('')}
+        </section>
+        <input type="submit" value="Add Character" />
+      </form>
+    </div>
+  `;
+};
+const GenerateClassButtonHTML = (job) => {
+	return `
+    <label>
+      <input type="radio" name="class-select" value="${job}" required />
+      <section>
+      <img src="img/class_icons/${job}.webp" />
+        <p>${job[0].charAt(0).toUpperCase() + job.substring(1)}</p>
+      </section>
+    </label>
+  `;
+};
+const GenerateCreateTaskForm = () => {
+	return `
+    <div class="create-task-form hide">
+      <form>
+        <input type="text" name="task-title" placeholder="Task Description" required />
+        <input type="number" name="task-count" placeholder="Count" min="1" step="1" required />
+        <p>* Count represents the maximum number of completions allotted before reset.</p>
+        <input type="submit" value="Add Task" />
+      </form>
+    </div>
+  `;
+};
+const GenerateEditModal = () => {};
+const HandleCreateButtons = () => {
+	const modal = document.querySelector('#modal');
+	// Character Elements
+	const create_character = document.querySelector('.create-card.btn');
+	const create_character_form = document.querySelector('.create-character-form');
+	// Task Elements
+	const create_tasks = document.querySelectorAll('.create-task.btn');
+	const create_task_form = document.querySelector('.create-task-form');
 
-				create_character.classList.remove('hide');
-				modal.classList.add('open');
+	create_character.addEventListener('click', () => {
+		modal.querySelector('.exit').addEventListener('click', () => {
+			modal.classList.remove('open');
+			create_character_form.classList.add('hide');
+		});
+
+		modal.classList.add('open');
+		create_character_form.classList.remove('hide');
+	});
+
+	create_tasks.forEach((create_task) => {
+		create_task.addEventListener('click', (e) => {
+			create_task_form.dataset.cardId = e.target.dataset.cardId;
+			modal.querySelector('.exit').addEventListener('click', () => {
+				modal.classList.remove('open');
+				create_task_form.classList.add('hide');
 			});
-		}
-		// User is creating a task
-		else {
-		}
+
+			modal.classList.add('open');
+			create_task_form.classList.remove('hide');
+		});
 	});
 };
+const HandleCreateCharacterSubmit = () => {
+	const modal = document.querySelector('#modal');
+	const create_character_form = document.querySelector('.create-character-form');
 
-const HandleCreateCharacterForm = (obj) => {
-	const create_character_form = document.querySelector('.create-character-form form');
 	create_character_form.addEventListener('submit', (e) => {
 		e.preventDefault();
 
-		const new_character_name = create_character_form.elements['character-name'].value;
-		const new_character_class = create_character_form.elements['class-select'].value;
+		const new_character = new Character(
+			create_character_form.querySelector('form').elements['character-name'].value,
+			create_character_form.querySelector('form').elements['class-select'].value
+		);
 
+		// Hide modal content
 		modal.classList.remove('open');
-		const new_character = new Character(new_character_name, new_character_class);
-		new_character.createDefaultTasks();
-		account.addCharacter(new_character);
+		create_character_form.classList.add('hide');
+		create_character_form.querySelector('form').reset();
 
-		create_character_form.reset();
+		new_character.createDefaultTasks();
+
+		account.addCharacter(new_character);
+	});
+};
+const HandleCreateTaskSubmit = () => {
+	const modal = document.querySelector('#modal');
+	const create_task_form = document.querySelector('.create-task-form');
+
+	create_task_form.addEventListener('submit', (e) => {
+		e.preventDefault();
+
+		const card_id = create_task_form.dataset.cardId;
+		const view = document.querySelector('.tasks-view .active');
+
+		const new_task = new Task(
+			create_task_form.querySelector('form').elements['task-title'].value,
+			create_task_form.querySelector('form').elements['task-count'].value
+		);
+
+		const target_obj = card_id > 0 ? account.characters[card_id] : account;
+
+		// Hide modal content
+		modal.classList.remove('open');
+		create_task_form.classList.add('hide');
+		create_task_form.querySelector('form').reset();
+
+		view.textContent.toLowerCase() == 'daily' ? target_obj.addDailyTask(new_task) : target_obj.addWeeklyTask(new_task);
+
+		view.click();
 	});
 };
 
 // --- MAIN ---
-const local_storage = window.localStorage;
 // Generate new account if first visit
-if (local_storage.getItem('account') === null) {
-	const new_account = new Account();
-	new_account.createDefaultTasks();
-	UpdateLocalStorage(new_account);
+if (!account) {
+	account = new Account();
+	account.createDefaultTasks();
+	UpdateLocalStorage(account);
 }
 // Grab data on LocalStorage
-const account = ParseJSON();
+account = ParseJSON();
 
 // Populate card carousel with account and character cards
-PopulateCarousel(account);
-// Begins countdown timers
-HandleTimer(account);
-// Enables submission of add character form
-HandleCreateCharacterForm(account);
+PopulateCarousel();
+// Begins countdown timers and resetting function
+HandleTimer();
 
 // Update LocalStorage before exiting
 // window.onbeforeunload = () => {
