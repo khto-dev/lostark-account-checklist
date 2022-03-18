@@ -68,6 +68,15 @@ class Todo {
 		UpdateLocalStorage();
 		PopulateCarousel();
 	}
+	removeWeeklyTask(target_task) {
+		const tasks = this.getWeeklyTasks();
+		const task_index = tasks.findIndex((task) => task.equals(target_task));
+
+		this.tasks.weekly.splice(task_index, 1);
+
+		UpdateLocalStorage();
+		PopulateCarousel();
+	}
 	resetDailyTasks() {
 		this.tasks['daily'].forEach((task) => (task.count_progress = 0));
 	}
@@ -85,7 +94,7 @@ class Account extends Todo {
 	 */
 	constructor() {
 		super();
-		this.last_visited = Math.floor(Date.now() / 1000);
+		this.last_visited = GetNowUTCTimestamp();
 		this.characters = {};
 		this.id_count = 0;
 	}
@@ -99,9 +108,7 @@ class Account extends Todo {
 	}
 
 	updateLastVisited() {
-		this.last_visited = Math.floor(Date.now() / 1000);
-
-		UpdateLocalStorage();
+		this.last_visited = GetNowUTCTimestamp();
 	}
 	addCharacter(character) {
 		character.setID(++this.id_count);
@@ -114,8 +121,8 @@ class Account extends Todo {
 
 	// Adds rapport tasks, chaos gate, adventure island, and ghost ship
 	createDefaultTasks() {
-		this.addDailyTask(new Task('Rapport: Play Instrument', 5, 0));
-		this.addDailyTask(new Task('Rapport: Emote', 5, 0));
+		this.addDailyTask(new Task('Rapport: Play Instrument', 6, 0));
+		this.addDailyTask(new Task('Rapport: Emote', 6, 0));
 		this.addDailyTask(new Task('Chaos Gate', 1, 0));
 		this.addDailyTask(new Task('Adventure Island', 1, 0));
 		this.addWeeklyTask(new Task('Ghost Ship', 1, 0));
@@ -140,18 +147,24 @@ class Character extends Todo {
 	}
 	setName(char_name) {
 		this.char_name = char_name;
+
+		UpdateLocalStorage();
 	}
 	getClass() {
 		return this.job;
 	}
 	setClass(job) {
 		this.job = job;
+
+		UpdateLocalStorage();
 	}
 	getOrder() {
 		return this.order;
 	}
 	setOrder(order) {
 		this.order = order;
+
+		UpdateLocalStorage();
 	}
 
 	// Adds Una's tasks, Chaos Dungeons, and Guardian Raids daily tasks
@@ -182,6 +195,7 @@ class Task {
 		this.title = title;
 
 		UpdateLocalStorage();
+		PopulateCarousel();
 	}
 	getCountTotal() {
 		return this.count_total;
@@ -190,6 +204,7 @@ class Task {
 		this.count_total = count_total;
 
 		UpdateLocalStorage();
+		PopulateCarousel();
 	}
 	getCountProgress() {
 		return this.count_progress;
@@ -198,16 +213,19 @@ class Task {
 		this.count_progress = count_progress;
 
 		UpdateLocalStorage();
+		PopulateCarousel();
 	}
 
 	incrementCount() {
 		if (this.count_progress < this.count_total) {
 			this.count_progress++;
 		}
+
 		UpdateLocalStorage();
 	}
 	decrementCount() {
 		if (this.count_progress > 0) this.count_progress--;
+
 		UpdateLocalStorage();
 	}
 	equals(target_task) {
@@ -221,7 +239,20 @@ class Task {
 
 // --- HELPER FUNCTIONS ---
 const UpdateLocalStorage = () => {
+	account.updateLastVisited();
 	local_storage.setItem('account', JSON.stringify(account));
+};
+const GetNowUTCTimestamp = () => {
+	const now_relative = new Date();
+	const now_utc = new Date(
+		now_relative.getUTCFullYear(),
+		now_relative.getUTCMonth(),
+		now_relative.getUTCDate(),
+		now_relative.getUTCHours(),
+		now_relative.getUTCMinutes(),
+		now_relative.getUTCSeconds()
+	);
+	return Math.floor(now_utc / 1000);
 };
 /**
  * Resets all daily tasks to have count_progress of 0.
@@ -472,22 +503,32 @@ const HandleTimer = () => {
 	const daily_timer = document.querySelector('.timer.daily').querySelector('.timer');
 	const weekly_timer = document.querySelector('.timer.weekly').querySelector('.timer');
 
-	// Resets at the 36000 second of the day ; 5AM UTC-5
-	const RESET_TIME = 36000;
+	// Resets at the 50400 second of the day ; 10AM UTC
+	const RESET_TIME = 50400;
 	// 86400 seconds in a day
 	const day_seconds = 86400;
 	// 604800 seconds in a week
 	const week_seconds = 604800;
 
-	if (Math.floor(Date.now() / 1000) - account.getLastVisited() > day_seconds) {
+	const now = GetNowUTCTimestamp();
+
+	// Reset dailies if it has been more than 1 day since last visit
+	if (
+		now - account.getLastVisited() > day_seconds ||
+		(account.getLastVisited() % day_seconds < RESET_TIME && now % day_seconds > RESET_TIME)
+	) {
 		ResetDailyTasks();
 	}
-	if (Math.floor(Date.now() / 1000) - account.getLastVisited() > week_seconds) {
+	// Reset weeklies if it has been more than 1 week since last visit
+	if (
+		now - account.getLastVisited() > week_seconds ||
+		(account.getLastVisited() % week_seconds < RESET_TIME && now % week_seconds > RESET_TIME)
+	) {
 		ResetWeeklyTasks();
 	}
 
 	setInterval(() => {
-		const now = Math.floor(Date.now() / 1000);
+		const now = GetNowUTCTimestamp();
 		const now_relative_daily = now % day_seconds;
 		const now_relative_weekly = now % week_seconds;
 
@@ -528,7 +569,7 @@ const GenerateModal = () => {
   <div class="modal-bg exit"></div>
   ${GenerateCreateCharacterForm()}
   ${GenerateCreateTaskForm()}
-  <!-- ${GenerateEditModal()} -->
+  ${GenerateEditModal()}
   `;
 	HandleCreateButtons();
 	HandleCreateCharacterSubmit();
@@ -576,7 +617,33 @@ const GenerateCreateTaskForm = () => {
     </div>
   `;
 };
-const GenerateEditModal = () => {};
+const GenerateEditModal = () => {
+	return `
+    <div class="edit-obj hide">
+      <form>
+        <input type="text" name="character-name" maxlength="16" value="${account.characters[1].getName()}" placeholder="New Character Name" required />
+        <section>
+          ${account.characters[1].tasks.daily
+						.map((task, i) => {
+							GenerateEditTasks(task, i);
+						})
+						.join('')}
+          ${account.characters[1].tasks.weekly
+						.map((task) => {
+							GenerateEditTasks(task);
+						})
+						.join('')}
+        </section>
+      </form>
+    </div>
+  `;
+};
+const GenerateEditTasks = (task, index) => {
+	return `
+    <input type="text" name="daily-task-${index} value="${task.getTitle()}" placeholder="Task Title" required />
+  `;
+};
+
 const HandleCreateButtons = () => {
 	const modal = document.querySelector('#modal');
 	// Character Elements
@@ -658,6 +725,7 @@ const HandleCreateTaskSubmit = () => {
 		view.click();
 	});
 };
+const HandleEditButtons = () => {};
 
 // --- MAIN ---
 // Generate new account if first visit
@@ -676,6 +744,5 @@ HandleTimer();
 
 // Update LocalStorage before exiting
 // window.onbeforeunload = () => {
-// 	account.updateLastVisited();
 // 	UpdateLocalStorage(account);
 // };

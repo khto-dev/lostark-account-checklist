@@ -160,6 +160,7 @@ Character Profiles
 	align-items: flex-end;
 	padding-bottom: 1rem;
 	position: relative;
+	overflow: hidden;
 }
 .card.account .profile {
 	padding: 2.5rem 0 1rem 0;
@@ -318,7 +319,8 @@ Modal
 	align-items: center;
 }
 .modal .create-character-form,
-.modal .create-task-form {
+.modal .create-task-form,
+.modal .edit-obj {
 	display: flex;
 	flex: 0 1 60rem;
 	align-items: center;
