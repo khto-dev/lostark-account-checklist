@@ -365,7 +365,7 @@ const GenerateAccountCardHTML = () => {
 	return `
     <li class="card account">
       <section class="profile bg logo">
-        <i class="fas fa-edit"></i>
+        <i class="fas fa-edit" data-card-id="0"></i>
       </section>
       ${GenerateTodoList(account)}
     </li>
@@ -375,7 +375,7 @@ const GenerateCharacterCardHTML = (character) => {
 	return `
     <li class="card character">
       <section class="profile bg ${character.getClass()}">
-        <i class="fas fa-edit"></i>
+        <i class="fas fa-edit" data-card-id="${character.getID()}"></i>
         <h2 class="name">${character.getName()}</h2>
       </section>
       ${GenerateTodoList(character)}
@@ -574,6 +574,7 @@ const GenerateModal = () => {
 	HandleCreateButtons();
 	HandleCreateCharacterSubmit();
 	HandleCreateTaskSubmit();
+	HandleEditButtons();
 };
 const GenerateCreateCharacterForm = () => {
 	return `  
@@ -617,31 +618,75 @@ const GenerateCreateTaskForm = () => {
     </div>
   `;
 };
+
+// CHANGE TASKS TO CHECKBOXES, SAVE APPLIES CHANGES
 const GenerateEditModal = () => {
 	return `
     <div class="edit-obj hide">
       <form>
-        <input type="text" name="character-name" maxlength="16" value="${account.characters[1].getName()}" placeholder="New Character Name" required />
-        <section>
-          ${account.characters[1].tasks.daily
-						.map((task, i) => {
-							GenerateEditTasks(task, i);
-						})
-						.join('')}
-          ${account.characters[1].tasks.weekly
-						.map((task) => {
-							GenerateEditTasks(task);
-						})
-						.join('')}
+        <input class="delete-btn" type="submit" value="Delete">
+        <input type="text" name="character-name" maxlength="16" value="" placeholder="New Character Name" required />
+        <section class="tasks-edit">
+          <p>Dailies</p>
+          <div class="daily-edit"></div>
+          <p>Weeklies</p>
+          <div class="weekly-edit"></div>
         </section>
+        <input type="submit" value="Save">
       </form>
     </div>
   `;
 };
 const GenerateEditTasks = (task, index) => {
 	return `
-    <input type="text" name="daily-task-${index} value="${task.getTitle()}" placeholder="Task Title" required />
+    <section class="row">
+      <i class="fa-solid fa-circle-minus"></i>
+      <input type="text" name="daily-task-${index}-title" value="${task.getTitle()}" placeholder="Task Title" required />
+      <input type="number" name="daily-task-${index}-count" value="${task.getCountTotal()}" placeholder="Count" required />
+    </section>
   `;
+};
+const PopulateEditTasks = () => {
+	PopulateEditDailies();
+	PopulateEditWeeklies();
+};
+const PopulateEditDailies = () => {
+	const edit_obj = document.querySelector('.edit-obj');
+	const id = parseInt(edit_obj.dataset.charId);
+	console.log(id);
+	const daily_edit = document.querySelector('.edit-obj .daily-edit');
+	const target = id > 0 ? account.characters : account;
+
+	const daily_edit_HTML = target.tasks.daily
+		.map((task, index) => {
+			return `
+    <section class="row">
+      <i class="fa-solid fa-circle-minus"></i>
+      <input type="text" name="daily-task-${index}-title" value="${task.getTitle()}" placeholder="Task Title" required />
+      <input type="number" name="daily-task-${index}-count" value="${task.getCountTotal()}" placeholder="Count" required />
+    </section>
+    `;
+		})
+		.join('');
+
+	daily_edit.innerHTML = daily_edit_HTML;
+};
+const PopulateEditWeeklies = () => {
+	const edit_obj = document.querySelector('.edit-obj');
+	const id = edit_obj.dataset.charId;
+	const target = id > 0 ? account.characters : account;
+
+	return target.tasks.weekly
+		.map((task, index) => {
+			return `
+      <section class="row" data-task-index="${index}">
+        <i class="fa-solid fa-circle-minus"></i>
+        <input type="text" name="weekly-task-${index}-title" value="${task.getTitle()}" placeholder="Task Title" required />
+        <input type="number" name="weekly-task-${index}-count" value="${task.getCountTotal()}" placeholder="Count" required />
+      </section>
+    `;
+		})
+		.join('');
 };
 
 const HandleCreateButtons = () => {
@@ -652,6 +697,9 @@ const HandleCreateButtons = () => {
 	// Task Elements
 	const create_tasks = document.querySelectorAll('.create-task.btn');
 	const create_task_form = document.querySelector('.create-task-form');
+	// Edit Elements
+	const edit_btns = document.querySelectorAll('.profile i');
+	const edit_obj = document.querySelector('.edit-obj');
 
 	create_character.addEventListener('click', () => {
 		modal.querySelector('.exit').addEventListener('click', () => {
@@ -673,6 +721,19 @@ const HandleCreateButtons = () => {
 
 			modal.classList.add('open');
 			create_task_form.classList.remove('hide');
+		});
+	});
+
+	edit_btns.forEach((edit_btn) => {
+		edit_btn.addEventListener('click', (e) => {
+			edit_obj.dataset.cardId = e.target.dataset.cardId;
+			modal.querySelector('.exit').addEventListener('click', () => {
+				modal.classList.remove('open');
+				edit_obj.classList.add('hide');
+			});
+
+			modal.classList.add('open');
+			edit_obj.classList.remove('hide');
 		});
 	});
 };
@@ -725,7 +786,15 @@ const HandleCreateTaskSubmit = () => {
 		view.click();
 	});
 };
-const HandleEditButtons = () => {};
+const HandleEditButtons = () => {
+	const edit_btns = document.querySelectorAll('.profile i');
+	edit_btns.forEach((edit_btn) => {
+		edit_btn.addEventListener('click', () => {
+			PopulateEditTasks();
+			console.log(document.querySelector('.edit-obj'));
+		});
+	});
+};
 
 // --- MAIN ---
 // Generate new account if first visit

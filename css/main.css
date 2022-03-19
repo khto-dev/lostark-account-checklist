@@ -3,6 +3,7 @@
 	--ff-accent: #fff;
 	--accent: #bfa251;
 	--secondary-accent: #d675ae;
+	--accent-danger: #ec4747;
 	/* Background Colours */
 	--bg-dark: #1c1e20;
 	--bg-darker: #131416;
@@ -321,16 +322,24 @@ Modal
 .modal .create-character-form,
 .modal .create-task-form,
 .modal .edit-obj {
+	max-height: 70%;
 	display: flex;
 	flex: 0 1 60rem;
-	align-items: center;
+	align-items: flex-start;
 	justify-content: center;
 	position: relative;
 	padding: 3rem 0;
+	overflow: auto;
 
 	border-radius: 1.5rem;
 	background-color: var(--bg-dark);
 }
+.modal .create-character-form::-webkit-scrollbar,
+.modal .create-task-form::-webkit-scrollbar,
+.modal .edit-obj::-webkit-scrollbar {
+	display: none;
+}
+
 .modal input[type='text'],
 input[type='number'] {
 	color: white;
@@ -484,9 +493,50 @@ Create Task Modal
 	display: none !important;
 }
 
-/* =============================================================================
-Add Character Modal
-============================================================================= */
+/* ======================================
+Edit Modal
+====================================== */
+.edit-obj .tasks-edit {
+	width: 100%;
+}
+.edit-obj .tasks-edit input[type='text'] {
+	text-align: left;
+	font-size: 1.6rem;
+}
+.edit-obj .tasks-edit input[type='number'] {
+	font-size: 1.8rem;
+}
+.edit-obj .tasks-edit p {
+	margin: 1rem 0;
+	color: rgb(133, 133, 133);
+}
+.edit-obj .tasks-edit .row {
+	width: 100%;
+	height: 5rem;
+	display: flex;
+	justify-content: space-between;
+	gap: 1.5rem;
+}
+.edit-obj .tasks-edit .row .fa-solid {
+	height: auto;
+	margin-top: 0.7rem;
+	cursor: pointer;
+
+	-webkit-transition: color 0.2s ease-out;
+	-moz-transition: color 0.2s ease-out;
+	-o-transition: color 0.2s ease-out;
+	transition: color 0.2s ease-out;
+}
+.edit-obj .tasks-edit .row .fa-solid:hover {
+	color: var(--accent-danger);
+}
+.edit-obj .delete-btn {
+	margin-top: 0;
+	margin-bottom: 2rem;
+	padding: 0.6rem 2rem;
+	font-size: 0.9em;
+	background-color: var(--accent-danger);
+}
 
 /* =============================================================================
 Media
