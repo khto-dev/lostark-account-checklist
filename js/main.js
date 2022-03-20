@@ -168,6 +168,7 @@ class Character extends Todo {
 		this.char_name = char_name;
 
 		UpdateLocalStorage();
+		PopulateCarousel();
 	}
 	getClass() {
 		return this.job;
@@ -846,11 +847,14 @@ const HandleEditSubmit = () => {
 		// Compensation for any task that gets deleted
 		const removed_tasks = [];
 
+		const card_id = edit_obj.dataset.cardId;
+		const target = card_id > 0 ? account.characters[card_id] : account;
+		const new_name = edit_form.elements['character-name'].value;
+		if (card_id > 0) target.setName(new_name);
+
 		edit_checkboxes.forEach((checkbox) => {
-			// Find which card and which task is being modified
-			const card_id = checkbox.dataset.cardId;
+			// Find which task is being modified
 			const task_index = checkbox.dataset.taskIndex;
-			const target = card_id > 0 ? account.characters[card_id] : account;
 			// Daily or weekly task
 			const view = checkbox.name.split('-')[0];
 			// Parent div to grab other fields
