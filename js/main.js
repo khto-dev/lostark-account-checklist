@@ -59,20 +59,32 @@ class Todo {
 		PopulateCarousel();
 	}
 	// TODO
-	removeDailyTask(target_task) {
-		const tasks = this.getDailyTasks();
-		const task_index = tasks.findIndex((task) => task.equals(target_task));
+	// removeDailyTask(target_task) {
+	// 	const tasks = this.getDailyTasks();
+	// 	const task_index = tasks.findIndex((task) => task.equals(target_task));
 
-		this.tasks.daily.splice(task_index, 1);
+	// 	this.tasks.daily.splice(task_index, 1);
+
+	// 	UpdateLocalStorage();
+	// 	PopulateCarousel();
+	// }
+	removeDailyTask(index) {
+		this.tasks.daily.splice(index, 1);
 
 		UpdateLocalStorage();
 		PopulateCarousel();
 	}
-	removeWeeklyTask(target_task) {
-		const tasks = this.getWeeklyTasks();
-		const task_index = tasks.findIndex((task) => task.equals(target_task));
+	// removeWeeklyTask(target_task) {
+	// 	const tasks = this.getWeeklyTasks();
+	// 	const task_index = tasks.findIndex((task) => task.equals(target_task));
 
-		this.tasks.weekly.splice(task_index, 1);
+	// 	this.tasks.weekly.splice(task_index, 1);
+
+	// 	UpdateLocalStorage();
+	// 	PopulateCarousel();
+	// }
+	removeWeeklyTask(index) {
+		this.tasks.weekly.splice(index, 1);
 
 		UpdateLocalStorage();
 		PopulateCarousel();
@@ -118,12 +130,19 @@ class Account extends Todo {
 		UpdateLocalStorage();
 		PopulateCarousel();
 	}
+	removeCharacter(key) {
+		delete this.characters[key];
+
+		UpdateLocalStorage();
+		PopulateCarousel();
+	}
 
 	// Adds rapport tasks, chaos gate, adventure island, and ghost ship
 	createDefaultTasks() {
 		this.addDailyTask(new Task('Rapport: Play Instrument', 6, 0));
 		this.addDailyTask(new Task('Rapport: Emote', 6, 0));
 		this.addDailyTask(new Task('Chaos Gate', 1, 0));
+		this.addDailyTask(new Task('Field Boss', 1, 0));
 		this.addDailyTask(new Task('Adventure Island', 1, 0));
 		this.addWeeklyTask(new Task('Ghost Ship', 1, 0));
 	}
@@ -373,9 +392,9 @@ const GenerateAccountCardHTML = () => {
 };
 const GenerateCharacterCardHTML = (character) => {
 	return `
-    <li class="card character">
+    <li class="card character" data-card-id=${character.getID()}>
       <section class="profile bg ${character.getClass()}">
-        <i class="fas fa-edit" data-card-id="${character.getID()}"></i>
+        <i class="fas fa-edit" data-card-id=${character.getID()}></i>
         <h2 class="name">${character.getName()}</h2>
       </section>
       ${GenerateTodoList(character)}
@@ -569,7 +588,7 @@ const GenerateModal = () => {
   <div class="modal-bg exit"></div>
   ${GenerateCreateCharacterForm()}
   ${GenerateCreateTaskForm()}
-  ${GenerateEditModal()}
+  ${GenerateEditForm()}
   `;
 	HandleCreateButtons();
 	HandleCreateCharacterSubmit();
@@ -619,68 +638,71 @@ const GenerateCreateTaskForm = () => {
   `;
 };
 
-// CHANGE TASKS TO CHECKBOXES, SAVE APPLIES CHANGES
-const GenerateEditModal = () => {
+const GenerateEditForm = () => {
 	return `
     <div class="edit-obj hide">
       <form>
-        <input class="delete-btn" type="submit" value="Delete">
-        <input type="text" name="character-name" maxlength="16" value="" placeholder="New Character Name" required />
+        <input type="text" class="name-edit" name="character-name" maxlength="16" value="" placeholder="New Character Name" required />
         <section class="tasks-edit">
           <p>Dailies</p>
           <div class="daily-edit"></div>
           <p>Weeklies</p>
           <div class="weekly-edit"></div>
         </section>
-        <input type="submit" value="Save">
+        <section class="row">
+          <input id="edit-delete-btn" type="submit" name="delete-btn" value="Remove Character">
+          <input id="edit-apply-btn" type="submit" name="apply-btn" value="Apply Changes">
+        </section>
       </form>
     </div>
   `;
 };
-const GenerateEditTasks = (task, index) => {
-	return `
-    <section class="row">
-      <i class="fa-solid fa-circle-minus"></i>
-      <input type="text" name="daily-task-${index}-title" value="${task.getTitle()}" placeholder="Task Title" required />
-      <input type="number" name="daily-task-${index}-count" value="${task.getCountTotal()}" placeholder="Count" required />
-    </section>
-  `;
+const PopulateEditForm = () => {
+	const edit_obj = document.querySelector('#modal .edit-obj');
+	const edit_obj_form = edit_obj.querySelector('form');
+	// Find which card to edit
+	const card_id = edit_obj.dataset.cardId;
+	const target = card_id > 0 ? account.characters[card_id] : account;
+	// Fill in object name
+	const name_edit = edit_obj_form.querySelector('.name-edit');
+	if (card_id > 0) {
+		edit_obj_form.querySelector('#edit-delete-btn').removeAttribute('disabled');
+		name_edit.removeAttribute('disabled');
+		name_edit.setAttribute('value', target.getName());
+	} else {
+		name_edit.setAttribute('value', 'Account');
+		name_edit.setAttribute('disabled', true);
+		edit_obj_form.querySelector('#edit-delete-btn').setAttribute('disabled', true);
+	}
+	// Fill in object tasks
+	PopulateEditDailies(target);
+	PopulateEditWeeklies(target);
+	HandleEditCheckboxes();
+	HandleEditSubmit();
 };
-const PopulateEditTasks = () => {
-	PopulateEditDailies();
-	PopulateEditWeeklies();
-};
-const PopulateEditDailies = () => {
-	const edit_obj = document.querySelector('.edit-obj');
-	const id = parseInt(edit_obj.dataset.charId);
-	console.log(id);
-	const daily_edit = document.querySelector('.edit-obj .daily-edit');
-	const target = id > 0 ? account.characters : account;
+const PopulateEditDailies = (obj) => {
+	const daily_edit = document.querySelector('#modal .edit-obj .daily-edit');
 
-	const daily_edit_HTML = target.tasks.daily
+	daily_edit.innerHTML = obj.tasks.daily
 		.map((task, index) => {
 			return `
-    <section class="row">
-      <i class="fa-solid fa-circle-minus"></i>
-      <input type="text" name="daily-task-${index}-title" value="${task.getTitle()}" placeholder="Task Title" required />
-      <input type="number" name="daily-task-${index}-count" value="${task.getCountTotal()}" placeholder="Count" required />
-    </section>
+      <section class="row">
+        <input type="checkbox" name="daily-task-${index}" data-card-id=${obj.getID()} data-task-index=${index} checked />
+        <input type="text" name="daily-task-${index}-title" value="${task.getTitle()}" placeholder="Task Title" required />
+        <input type="number" name="daily-task-${index}-count" value="${task.getCountTotal()}" placeholder="Count" required />
+      </section>
     `;
 		})
 		.join('');
-
-	daily_edit.innerHTML = daily_edit_HTML;
 };
-const PopulateEditWeeklies = () => {
-	const edit_obj = document.querySelector('.edit-obj');
-	const id = edit_obj.dataset.charId;
-	const target = id > 0 ? account.characters : account;
+const PopulateEditWeeklies = (obj) => {
+	const weekly_edit = document.querySelector('#modal .edit-obj .weekly-edit');
 
-	return target.tasks.weekly
+	weekly_edit.innerHTML = obj.tasks.weekly
 		.map((task, index) => {
 			return `
-      <section class="row" data-task-index="${index}">
-        <i class="fa-solid fa-circle-minus"></i>
+      <section class="row">
+        <input type="checkbox" name="weekly-task-${index}" data-card-id=${obj.getID()} data-task-index=${index} checked />
         <input type="text" name="weekly-task-${index}-title" value="${task.getTitle()}" placeholder="Task Title" required />
         <input type="number" name="weekly-task-${index}-count" value="${task.getCountTotal()}" placeholder="Count" required />
       </section>
@@ -788,11 +810,93 @@ const HandleCreateTaskSubmit = () => {
 };
 const HandleEditButtons = () => {
 	const edit_btns = document.querySelectorAll('.profile i');
+	const edit_obj = document.querySelector('#modal .edit-obj');
+
 	edit_btns.forEach((edit_btn) => {
 		edit_btn.addEventListener('click', () => {
-			PopulateEditTasks();
-			console.log(document.querySelector('.edit-obj'));
+			edit_obj.dataset.cardId = edit_btn.dataset.cardId;
+			PopulateEditForm();
 		});
+	});
+};
+const HandleEditCheckboxes = () => {
+	const edit_obj = document.querySelector('.edit-obj');
+	const edit_form = edit_obj.querySelector('form');
+	const edit_checkboxes = edit_form.querySelectorAll('input[type="checkbox"');
+
+	edit_checkboxes.forEach((checkbox) => {
+		checkbox.addEventListener('change', () => {
+			checkbox.toggleAttribute('checked');
+		});
+	});
+};
+const HandleEditSubmit = () => {
+	const modal = document.querySelector('#modal');
+	const edit_obj = document.querySelector('.edit-obj');
+	const edit_form = edit_obj.querySelector('form');
+	const edit_checkboxes = edit_form.querySelectorAll('input[type="checkbox"]');
+	const apply_btn = edit_form.querySelector('#edit-apply-btn');
+	const delete_btn = edit_form.querySelector('#edit-delete-btn');
+	// To swap back view after editing
+	const curr_view = document.querySelector('.tasks-view .active');
+
+	apply_btn.addEventListener('click', (e) => {
+		e.preventDefault();
+
+		// Compensation for any task that gets deleted
+		const removed_tasks = [];
+
+		edit_checkboxes.forEach((checkbox) => {
+			// Find which card and which task is being modified
+			const card_id = checkbox.dataset.cardId;
+			const task_index = checkbox.dataset.taskIndex;
+			const target = card_id > 0 ? account.characters[card_id] : account;
+			// Daily or weekly task
+			const view = checkbox.name.split('-')[0];
+			// Parent div to grab other fields
+			const row = checkbox.parentElement;
+			const new_title = row.querySelector('input[type="text"]').value;
+			const new_count = parseInt(row.querySelector('input[type="number"]').value);
+
+			if (checkbox.hasAttribute('checked')) {
+				target.tasks[view][task_index].setTitle(new_title);
+				target.tasks[view][task_index].setCountTotal(new_count);
+				if (target.tasks[view][task_index].getCountProgress() > new_count) {
+					target.tasks[view][task_index].setCountProgress(new_count);
+				}
+			} else {
+				removed_tasks.push([view, target, task_index]);
+			}
+		});
+
+		// Deleting unchecked tasks
+		let daily_ind_comp = 0;
+		let weekly_ind_comp = 0;
+		removed_tasks.forEach((task) => {
+			if (task[0] == 'daily') {
+				task[1].removeDailyTask(task[2] - daily_ind_comp);
+				daily_ind_comp++;
+			} else {
+				task[1].removeWeeklyTask(task[2] - weekly_ind_comp);
+				weekly_ind_comp++;
+			}
+		});
+
+		modal.classList.remove('open');
+		edit_obj.classList.add('hide');
+
+		curr_view.click();
+	});
+
+	delete_btn.addEventListener('click', (e) => {
+		e.preventDefault();
+
+		account.removeCharacter(edit_obj.dataset.cardId);
+
+		modal.classList.remove('open');
+		edit_obj.classList.add('hide');
+
+		curr_view.click();
 	});
 };
 

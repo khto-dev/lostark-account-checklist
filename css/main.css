@@ -485,9 +485,9 @@ Create Task Modal
 }
 .task.complete {
 	order: 1;
-	opacity: 0.6;
+	opacity: 0.3;
 
-	transition: opacity 0.5s ease-out;
+	transition: all 0.4s ease-out;
 }
 .hide {
 	display: none !important;
@@ -496,6 +496,9 @@ Create Task Modal
 /* ======================================
 Edit Modal
 ====================================== */
+.edit-obj form {
+	width: 100%;
+}
 .edit-obj .tasks-edit {
 	width: 100%;
 }
@@ -505,6 +508,9 @@ Edit Modal
 }
 .edit-obj .tasks-edit input[type='number'] {
 	font-size: 1.8rem;
+}
+.edit-obj .tasks-edit input[type='submit'] {
+	flex: 1;
 }
 .edit-obj .tasks-edit p {
 	margin: 1rem 0;
@@ -517,25 +523,27 @@ Edit Modal
 	justify-content: space-between;
 	gap: 1.5rem;
 }
-.edit-obj .tasks-edit .row .fa-solid {
-	height: auto;
-	margin-top: 0.7rem;
-	cursor: pointer;
 
-	-webkit-transition: color 0.2s ease-out;
-	-moz-transition: color 0.2s ease-out;
-	-o-transition: color 0.2s ease-out;
-	transition: color 0.2s ease-out;
+.edit-obj .tasks-edit .row input[type='checkbox'] {
+	width: 2.5rem;
+	height: 2.5rem;
 }
-.edit-obj .tasks-edit .row .fa-solid:hover {
-	color: var(--accent-danger);
+
+.edit-obj form > .row {
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
 }
-.edit-obj .delete-btn {
-	margin-top: 0;
-	margin-bottom: 2rem;
-	padding: 0.6rem 2rem;
-	font-size: 0.9em;
+#edit-delete-btn {
+	padding: 1rem 1rem;
 	background-color: var(--accent-danger);
+}
+#edit-delete-btn:disabled {
+	background-color: rgb(53, 53, 53);
+	color: rgb(107, 107, 107);
+	/* filter: brightness(30%); */
+	cursor: default;
 }
 
 /* =============================================================================
