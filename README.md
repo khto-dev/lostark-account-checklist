@@ -20,7 +20,9 @@ Arkesia.todo is an online checklist tool that tracks your daily and weekly progr
     > :bulb: **Tip:** If your board becomes too full, you can scroll through the carousel with **SHIFT + Scroll Wheel**!
 3.  Your new character will also come with some default tasks but don't worry, you can edit or remove any task by hovering over the profile image and clicking the "Edit" button at the top right!
 4.  Add a new task by hovering over a card and clicking the "Add Task" button that appear at the bottom of the task list.
-5.  Add characters and tasks and happy adventuring!
+5.  Unchecking tasks in the "Edit" menu will delete the task when the "Apply" button is clicked.
+    > :bulb: **Tip:** Left clicking tasks will progress them, **ALT + CLICK** will decrement the progress!
+6.  Add characters and tasks and happy adventuring!
 
 ## Technologies Used
 
