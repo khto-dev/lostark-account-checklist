@@ -96,8 +96,20 @@ Cards
 	scroll-behavior: smooth;
 	scroll-snap-type: x mandatory;
 }
-.card-carousel::-webkit-scrollbar {
+.card-carousel::-webkit-scrollbar-track {
 	display: none;
+}
+
+.card-carousel::-webkit-scrollbar {
+	height: 8px;
+}
+
+.card-carousel::-webkit-scrollbar-thumb {
+	border-radius: 30px;
+	background-color: transparent;
+}
+.card-carousel:hover::-webkit-scrollbar-thumb {
+	background-color: var(--bg-darker);
 }
 
 /* ======================================
