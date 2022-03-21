@@ -8,6 +8,7 @@ const class_list = [
 	'scrapper',
 	'soulfist',
 	'striker',
+	'wardancer',
 	'artillerist',
 	'deadeye',
 	'gunslinger',
