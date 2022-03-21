@@ -263,16 +263,7 @@ const UpdateLocalStorage = () => {
 	local_storage.setItem('account', JSON.stringify(account));
 };
 const GetNowUTCTimestamp = () => {
-	const now_relative = new Date();
-	const now_utc = new Date(
-		now_relative.getUTCFullYear(),
-		now_relative.getUTCMonth(),
-		now_relative.getUTCDate(),
-		now_relative.getUTCHours(),
-		now_relative.getUTCMinutes(),
-		now_relative.getUTCSeconds()
-	);
-	return Math.floor(now_utc / 1000);
+	return Math.floor(new Date().getTime() / 1000);
 };
 /**
  * Resets all daily tasks to have count_progress of 0.
@@ -524,7 +515,7 @@ const HandleTimer = () => {
 	const weekly_timer = document.querySelector('.timer.weekly').querySelector('.timer');
 
 	// Resets at the 50400 second of the day ; 10AM UTC
-	const RESET_TIME = 50400;
+	const RESET_TIME = 36000;
 	// 86400 seconds in a day
 	const day_seconds = 86400;
 	// 604800 seconds in a week
