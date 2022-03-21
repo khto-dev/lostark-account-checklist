@@ -149,6 +149,9 @@ Create New Character
 	align-self: center;
 	margin: 0 2.6rem;
 }
+.create-card.card {
+	box-shadow: none;
+}
 .create-card span {
 	width: 100%;
 	display: flex;
