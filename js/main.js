@@ -59,31 +59,12 @@ class Todo {
 		UpdateLocalStorage();
 		PopulateCarousel();
 	}
-	// TODO
-	// removeDailyTask(target_task) {
-	// 	const tasks = this.getDailyTasks();
-	// 	const task_index = tasks.findIndex((task) => task.equals(target_task));
-
-	// 	this.tasks.daily.splice(task_index, 1);
-
-	// 	UpdateLocalStorage();
-	// 	PopulateCarousel();
-	// }
 	removeDailyTask(index) {
 		this.tasks.daily.splice(index, 1);
 
 		UpdateLocalStorage();
 		PopulateCarousel();
 	}
-	// removeWeeklyTask(target_task) {
-	// 	const tasks = this.getWeeklyTasks();
-	// 	const task_index = tasks.findIndex((task) => task.equals(target_task));
-
-	// 	this.tasks.weekly.splice(task_index, 1);
-
-	// 	UpdateLocalStorage();
-	// 	PopulateCarousel();
-	// }
 	removeWeeklyTask(index) {
 		this.tasks.weekly.splice(index, 1);
 
@@ -643,8 +624,8 @@ const GenerateEditForm = () => {
           <div class="weekly-edit"></div>
         </section>
         <section class="row">
-          <input id="edit-delete-btn" type="submit" name="delete-btn" value="Remove Character">
           <input id="edit-apply-btn" type="submit" name="apply-btn" value="Apply Changes">
+          <input id="edit-delete-btn" type="submit" name="delete-btn" value="Remove Character">
         </section>
       </form>
     </div>

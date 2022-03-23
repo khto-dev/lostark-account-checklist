@@ -553,6 +553,7 @@ Edit Modal
 #edit-delete-btn {
 	padding: 1rem 1rem;
 	background-color: var(--accent-danger);
+	order: -1;
 }
 #edit-delete-btn:disabled {
 	background-color: rgb(53, 53, 53);
