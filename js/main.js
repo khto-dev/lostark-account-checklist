@@ -505,19 +505,20 @@ const HandleTimer = () => {
 
 	const now = GetNowUTCTimestamp();
 
-	// Reset dailies if it has been more than 1 day since last visit
-	if (
-		now - account.getLastVisited() > day_seconds ||
-		(account.getLastVisited() % day_seconds < RESET_TIME && now % day_seconds > RESET_TIME)
-	) {
-		ResetDailyTasks();
-	}
 	// Reset weeklies if it has been more than 1 week since last visit
 	if (
 		now - account.getLastVisited() > week_seconds ||
 		(account.getLastVisited() % week_seconds < RESET_TIME && now % week_seconds > RESET_TIME)
 	) {
 		ResetWeeklyTasks();
+		ResetDailyTasks();
+	}
+	// Reset dailies if it has been more than 1 day since last visit
+	else if (
+		now - account.getLastVisited() > day_seconds ||
+		(account.getLastVisited() % day_seconds < RESET_TIME && now % day_seconds > RESET_TIME)
+	) {
+		ResetDailyTasks();
 	}
 
 	setInterval(() => {
