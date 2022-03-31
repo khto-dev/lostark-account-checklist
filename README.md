@@ -1,5 +1,7 @@
 # Arkesia.todo
 
+[Arkesia.todo Live Server](https://arkesiatodo.netlify.app/)
+
 Arkesia.todo is an online checklist tool that tracks your daily and weekly progress of tasks for the MMORPG Lost Ark. Arkesia.todo can store multiple characters and allows the creation of custom tasks; resetting all task progress both daily and weekly!
 
 ![sample.jpg](https://i.postimg.cc/QNyBNg57/sample.jpg)
@@ -46,3 +48,7 @@ From design, I went into HTML and CSS to design the frontend framework and makin
 Prior to this project, I have not used much JavaScript however, with a programming background it was very natural to get into. There were a lot of new concepts and problems I had to work out, mostly pertaining to storing, loading, and interacting with LocalStorage elements. Most of the complications I had stemmed from linking LocalStorage elements with the HTML elements, grabbing updates when needed. The solution I started using near the end of my development was to use data attributes which are accessible from JavaScript after grabbing the HTML element from the DOM. This solution was a lot more elegant than my workaround when I began this project and I would very much like to update the rest of the code to use this method. However, that would entail structural changes to the core objects used throughout the entire project. This will definitely be something I keep in mind for future projects.
 
 As someone who has not published a website before, I am very happy with what I have managed to accomplish with Arkesia.todo and wish all those that use it a wonderful experience! Happy adventuring, and I will see you all in the world of Arkesia!
+
+## URL
+
+[https://arkesiatodo.netlify.app/](https://arkesiatodo.netlify.app/)
