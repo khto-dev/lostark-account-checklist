@@ -901,7 +901,6 @@ const HandleInactiveTab = () => {
 			const last_active = session_storage.getItem('last_active');
 			const now = GetNowUTCTimestamp();
 			CheckForReset(now, last_active);
-			console.log(now - last_active > 86400 || (last_active % 86400 < 36000 && now % 86400 > 36000));
 		}
 	});
 };
