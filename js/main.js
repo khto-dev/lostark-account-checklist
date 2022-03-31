@@ -1,5 +1,6 @@
 // --- GLOBAL VARIABLES ---
 const local_storage = window.localStorage;
+const session_storage = window.sessionStorage;
 let account = local_storage.getItem('account');
 const class_list = [
 	'berserker',
@@ -496,7 +497,7 @@ const HandleTimer = () => {
 	const daily_timer = document.querySelector('.timer.daily').querySelector('.timer');
 	const weekly_timer = document.querySelector('.timer.weekly').querySelector('.timer');
 
-	// Resets at the 50400 second of the day ; 10AM UTC
+	// Resets at the 36000 second of the day ; 10AM UTC
 	const RESET_TIME = 36000;
 	// 86400 seconds in a day
 	const day_seconds = 86400;
@@ -505,21 +506,9 @@ const HandleTimer = () => {
 
 	const now = GetNowUTCTimestamp();
 
-	// Reset weeklies if it has been more than 1 week since last visit
-	if (
-		now - account.getLastVisited() > week_seconds ||
-		(account.getLastVisited() % week_seconds < RESET_TIME && now % week_seconds > RESET_TIME)
-	) {
-		ResetWeeklyTasks();
-		ResetDailyTasks();
-	}
-	// Reset dailies if it has been more than 1 day since last visit
-	else if (
-		now - account.getLastVisited() > day_seconds ||
-		(account.getLastVisited() % day_seconds < RESET_TIME && now % day_seconds > RESET_TIME)
-	) {
-		ResetDailyTasks();
-	}
+	CheckForReset(now, account.getLastVisited());
+
+	UpdateLocalStorage();
 
 	setInterval(() => {
 		const now = GetNowUTCTimestamp();
@@ -548,6 +537,32 @@ const HandleTimer = () => {
       ${time_remaining_days}:${time_remaining_hours}:${time_remaining_minutes}:${time_remaining_seconds}
     `;
 	}, 1000);
+};
+const CheckForReset = (current_time, compare_time) => {
+	// Server reset time
+	const reset_time = 36000;
+	// 86400 seconds in a day
+	const day_seconds = 86400;
+	// 604800 seconds in a week
+	const week_seconds = 604800;
+
+	// Reset everything if it has been more than 1 week since last visit
+	if (
+		current_time - compare_time > week_seconds ||
+		(compare_time % week_seconds < reset_time && current_time % week_seconds > reset_time)
+	) {
+		ResetWeeklyTasks();
+		ResetDailyTasks();
+	}
+	// Reset dailies if it has been more than 1 day since last visit
+	else if (
+		current_time - compare_time > day_seconds ||
+		(compare_time % day_seconds < reset_time && current_time % day_seconds > reset_time)
+	) {
+		ResetDailyTasks();
+	}
+
+	UpdateLocalStorage();
 };
 const TimeRemainingConvert = (reset_time, time, constraint) => {
 	return time > reset_time ? constraint - time + reset_time : reset_time - time;
@@ -878,6 +893,19 @@ const HandleEditSubmit = () => {
 	});
 };
 
+const HandleInactiveTab = () => {
+	document.addEventListener('visibilitychange', () => {
+		if (document.hidden) {
+			session_storage.setItem('last_active', GetNowUTCTimestamp());
+		} else {
+			const last_active = session_storage.getItem('last_active');
+			const now = GetNowUTCTimestamp();
+			CheckForReset(now, last_active);
+			console.log(now - last_active > 86400 || (last_active % 86400 < 36000 && now % 86400 > 36000));
+		}
+	});
+};
+
 // --- MAIN ---
 // Generate new account if first visit
 if (!account) {
@@ -893,7 +921,6 @@ PopulateCarousel();
 // Begins countdown timers and resetting function
 HandleTimer();
 
-// Update LocalStorage before exiting
-// window.onbeforeunload = () => {
-// 	UpdateLocalStorage(account);
-// };
+// Stores time of when site is not in focus and compares for reset
+// Fix for tasks do not reset when site is inactive during time of reset
+HandleInactiveTab();
