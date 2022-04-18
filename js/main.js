@@ -6,6 +6,7 @@ const class_list = [
 	'berserker',
 	'gunlancer',
 	'paladin',
+	'glaivier',
 	'scrapper',
 	'soulfist',
 	'striker',
@@ -23,7 +24,6 @@ const class_list = [
 // --- OBJECTS ---
 class Todo {
 	constructor() {
-		this.id = 0;
 		this.tasks = {
 			daily: [],
 			weekly: [],
@@ -49,13 +49,13 @@ class Todo {
 
 	// Adding new tasks
 	addDailyTask(task) {
-		this.tasks.daily.push(task);
+		this.tasks.daily[this.tasks.daily.length] = task;
 
 		UpdateLocalStorage();
 		PopulateCarousel();
 	}
 	addWeeklyTask(task) {
-		this.tasks.weekly.push(task);
+		this.tasks.weekly[this.tasks.weekly.length] = task;
 
 		UpdateLocalStorage();
 		PopulateCarousel();
@@ -90,8 +90,7 @@ class Account extends Todo {
 	constructor() {
 		super();
 		this.last_visited = GetNowUTCTimestamp();
-		this.characters = {};
-		this.id_count = 0;
+		this.characters = [];
 	}
 
 	// Getters
@@ -106,15 +105,14 @@ class Account extends Todo {
 		this.last_visited = GetNowUTCTimestamp();
 	}
 	addCharacter(character) {
-		character.setID(++this.id_count);
-		character.setOrder(this.id_count);
-		this.characters[this.id_count] = character;
+		this.characters[this.characters.length] = character;
 
 		UpdateLocalStorage();
 		PopulateCarousel();
 	}
 	removeCharacter(key) {
-		delete this.characters[key];
+		// delete this.characters[key];
+		this.characters.splice(key, 1);
 
 		UpdateLocalStorage();
 		PopulateCarousel();
@@ -122,12 +120,12 @@ class Account extends Todo {
 
 	// Adds rapport tasks, chaos gate, adventure island, and ghost ship
 	createDefaultTasks() {
-		this.addDailyTask(new Task('Rapport: Play Instrument', 6, 0));
-		this.addDailyTask(new Task('Rapport: Emote', 6, 0));
-		this.addDailyTask(new Task('Chaos Gate', 1, 0));
-		this.addDailyTask(new Task('Field Boss', 1, 0));
-		this.addDailyTask(new Task('Adventure Island', 1, 0));
-		this.addWeeklyTask(new Task('Ghost Ship', 1, 0));
+		this.addDailyTask(new Task('Rapport: Play Instrument', 6));
+		this.addDailyTask(new Task('Rapport: Emote', 6));
+		this.addDailyTask(new Task('Chaos Gate', 1));
+		this.addDailyTask(new Task('Field Boss', 1));
+		this.addDailyTask(new Task('Adventure Island', 1));
+		this.addWeeklyTask(new Task('Ghost Ship', 1));
 	}
 }
 class Character extends Todo {
@@ -140,7 +138,6 @@ class Character extends Todo {
 		super();
 		this.char_name = char_name;
 		this.job = job;
-		this.order = 0;
 	}
 
 	// Getters and setters
@@ -172,9 +169,10 @@ class Character extends Todo {
 
 	// Adds Una's tasks, Chaos Dungeons, and Guardian Raids daily tasks
 	createDefaultTasks() {
-		this.addDailyTask(new Task("Una's Tasks", 3, 0));
-		this.addDailyTask(new Task('Chaos Dungeons', 2, 0));
-		this.addDailyTask(new Task('Guardian Raids', 2, 0));
+		this.addDailyTask(new Task("Una's Tasks", 3));
+		this.addDailyTask(new Task('Chaos Dungeons', 2));
+		this.addDailyTask(new Task('Guardian Raids', 2));
+		this.addWeeklyTask(new Task("Una's Tasks", 3));
 	}
 }
 class Task {
@@ -309,20 +307,31 @@ const ParseJSON = () => {
  */
 const ParseJSONCharacters = (parse, fixed_parse) => {
 	// Loop through each character and assign Character prototype.
-	Object.keys(parse.characters).forEach((id) => {
-		fixed_parse.characters[id] = Object.assign(new Character(), parse.characters[id]);
-		ParseJSONTasks(fixed_parse.characters[id], parse.characters[id]);
-	});
+	if (!Array.isArray(parse.characters)) {
+		fixed_parse.characters = Object.keys(parse.characters).map((character) => {
+			return parse.characters[character];
+		});
+		fixed_parse.characters.forEach((character, i) => {
+			fixed_parse.characters[i] = Object.assign(new Character(), character);
+			console.log(i, fixed_parse);
+			ParseJSONTasks(fixed_parse.characters[i]);
+		});
+	} else {
+		parse.characters.forEach((character, i) => {
+			fixed_parse.characters[i] = Object.assign(new Character(), character);
+			ParseJSONTasks(parse.characters[i], fixed_parse.characters[i]);
+		});
+	}
 };
 /**
  * Corrects saved tasks to Task prototype.
  * @param {Object} parse Parsed saved data from local storage.
  * @param {Account} fixed_parse Parsed data converted to correct prototypes.
  */
-const ParseJSONTasks = (parse, fixed_parse) => {
+const ParseJSONTasks = (fixed_parse) => {
 	// Loop through each task and assign Task prototype
-	Object.keys(parse.tasks).forEach((view) => {
-		parse.tasks[view].forEach((task, i) => {
+	Object.keys(fixed_parse.tasks).forEach((view) => {
+		fixed_parse.tasks[view].forEach((task, i) => {
 			fixed_parse.tasks[view][i] = Object.assign(new Task(), task);
 		});
 	});
@@ -336,8 +345,9 @@ const PopulateCarousel = () => {
 
 	carousel.innerHTML = GenerateCreateCardHTML();
 	carousel.innerHTML += GenerateAccountCardHTML();
-	Object.keys(account.characters).forEach((id) => {
-		carousel.innerHTML += GenerateCharacterCardHTML(account.characters[id]);
+
+	account.characters.forEach((character, i) => {
+		carousel.innerHTML += GenerateCharacterCardHTML(character, i + 1);
 	});
 
 	// Enable interactions with tasks
@@ -357,46 +367,46 @@ const GenerateCreateCardHTML = () => {
 };
 const GenerateAccountCardHTML = () => {
 	return `
-    <li class="card account">
+    <li class="card account" data-card-id=0>
       <section class="profile bg logo">
-        <i class="fas fa-edit" data-card-id="0"></i>
+        <i class="fas fa-edit" data-card-id=0></i>
       </section>
-      ${GenerateTodoList(account)}
+      ${GenerateTodoList(account, 0)}
     </li>
   `;
 };
-const GenerateCharacterCardHTML = (character) => {
+const GenerateCharacterCardHTML = (character, index) => {
 	return `
-    <li class="card character" data-card-id=${character.getID()}>
+    <li class="card character" data-card-id=${index}>
       <section class="profile bg ${character.getClass()}">
-        <i class="fas fa-edit" data-card-id=${character.getID()}></i>
+        <i class="fas fa-edit" data-card-id=${index}></i>
         <h2 class="name">${character.getName()}</h2>
       </section>
-      ${GenerateTodoList(character)}
+      ${GenerateTodoList(character, index)}
     </li>
   `;
 };
-const GenerateTodoList = (obj) => {
+const GenerateTodoList = (obj, index) => {
 	return `
     <section>
       <ul class="todo-list">
-        <li class="create-task create btn add-decoration" data-card-id="${obj.getID()}"></li>
-        ${PopulateTasks(obj)}
+        <li class="create-task create btn add-decoration" data-card-id="${index}"></li>
+        ${PopulateTasks(obj, index)}
       </ul>
     </section>
   `;
 };
-const PopulateTasks = (obj) => {
+const PopulateTasks = (obj, index) => {
 	const daily = obj.getDailyTasks();
 	const weekly = obj.getWeeklyTasks();
 
-	return [GenerateTasksHTML('daily', daily, obj.getID()), GenerateTasksHTML('weekly', weekly, obj.getID())].join('');
+	return [GenerateTasksHTML('daily', daily, index), GenerateTasksHTML('weekly', weekly, index)].join('');
 };
-const GenerateTasksHTML = (view, tasks, id) => {
+const GenerateTasksHTML = (view, tasks, index) => {
 	return tasks
 		.map((task) => {
 			return `
-      <li class="task ${view} ${task.count_progress == task.count_total ? 'complete' : ''}" data-card-id="${id}">
+      <li class="task ${view} ${task.count_progress == task.count_total ? 'complete' : ''}" data-card-id="${index}">
         <p>${task.title}</p>
         <progress max="${task.count_total}" value="${task.count_progress}"></progress>
       </li>
@@ -423,7 +433,7 @@ const HandleTaskEvents = (task, e) => {
 	const card_id = task.dataset.cardId;
 	const target_task = HTMLtoTask(task);
 
-	const tasks = card_id > 0 ? account.characters[card_id].tasks[view] : account.tasks[view];
+	const tasks = card_id > 0 ? account.characters[card_id - 1].tasks[view] : account.tasks[view];
 	const task_index = FindTaskIndex(tasks, target_task);
 
 	if (!e.altKey) {
@@ -652,7 +662,7 @@ const PopulateEditForm = () => {
 	const edit_obj_form = edit_obj.querySelector('form');
 	// Find which card to edit
 	const card_id = edit_obj.dataset.cardId;
-	const target = card_id > 0 ? account.characters[card_id] : account;
+	const target = card_id > 0 ? account.characters[card_id - 1] : account;
 	// Fill in object name
 	const name_edit = edit_obj_form.querySelector('.name-edit');
 	if (card_id > 0) {
@@ -786,7 +796,7 @@ const HandleCreateTaskSubmit = () => {
 			create_task_form.querySelector('form').elements['task-count'].value
 		);
 
-		const target_obj = card_id > 0 ? account.characters[card_id] : account;
+		const target_obj = card_id > 0 ? account.characters[card_id - 1] : account;
 
 		// Hide modal content
 		modal.classList.remove('open');
@@ -837,7 +847,7 @@ const HandleEditSubmit = () => {
 		const removed_tasks = [];
 
 		const card_id = edit_obj.dataset.cardId;
-		const target = card_id > 0 ? account.characters[card_id] : account;
+		const target = card_id > 0 ? account.characters[card_id - 1] : account;
 		const new_name = edit_form.elements['character-name'].value;
 		if (card_id > 0) target.setName(new_name);
 
@@ -884,7 +894,7 @@ const HandleEditSubmit = () => {
 	delete_btn.addEventListener('click', (e) => {
 		e.preventDefault();
 
-		account.removeCharacter(edit_obj.dataset.cardId);
+		account.removeCharacter(edit_obj.dataset.cardId - 1);
 
 		modal.classList.remove('open');
 		edit_obj.classList.add('hide');

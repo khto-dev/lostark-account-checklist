@@ -202,10 +202,10 @@ Character Profiles
 	-o-transition: opacity 0.2s ease-out;
 	transition: opacity 0.2s ease-out;
 }
-.profile:hover i {
+.card:hover i {
 	opacity: 1;
 }
-.profile i:hover {
+.card i:hover {
 	cursor: pointer;
 }
 
@@ -592,6 +592,9 @@ Profiles
 	background-image: url('../img/class_banners/destroyer.jpg');
 }
 /* Martial Artists */
+.bg.glaivier {
+	background-image: url('../img/class_banners/glaivier.jpg');
+}
 .bg.striker {
 	background-image: url('../img/class_banners/striker.jpg');
 }
