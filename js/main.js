@@ -556,16 +556,24 @@ const CheckForReset = (current_time, compare_time) => {
 	// 604800 seconds in a week
 	const week_seconds = 604800;
 
+	console.table({
+		current_time: current_time,
+		current_time_relative_weekly: current_time % week_seconds,
+		current_time_relative_daily: current_time % day_seconds,
+		last_activity: compare_time,
+		last_activity_relative_weekly: compare_time % week_seconds,
+		last_activity_relative_daily: compare_time % day_seconds,
+	});
 	console.log('Checking for reset...');
-	console.log(`Last visit longer than a week: ${current_time - compare_time > week_seconds}`);
+	console.log(`- Last visit longer than a week: ${current_time - compare_time > week_seconds}`);
 	console.log(
-		`Weekly reset occurred between last activity and current time: ${
+		`- Weekly reset occurred between last activity and current time: ${
 			compare_time % week_seconds < reset_time && current_time % week_seconds > reset_time
 		}`
 	);
-	console.log(`Last visit longer than a day: ${current_time - compare_time > day_seconds}`);
+	console.log(`- Last visit longer than a day: ${current_time - compare_time > day_seconds}`);
 	console.log(
-		`Daily reset occurred between last activity and current time: ${
+		`- Daily reset occurred between last activity and current time: ${
 			compare_time % day_seconds < reset_time && current_time % day_seconds > reset_time
 		}`
 	);
@@ -923,8 +931,10 @@ const HandleInactiveTab = () => {
 			session_storage.setItem('last_active', GetNowUTCTimestamp());
 		} else {
 			const last_active = session_storage.getItem('last_active');
-			const now = GetNowUTCTimestamp();
-			CheckForReset(now, last_active);
+			if (last_active) {
+				const now = GetNowUTCTimestamp();
+				CheckForReset(now, last_active);
+			}
 		}
 	});
 };
