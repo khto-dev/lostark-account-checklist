@@ -556,6 +556,20 @@ const CheckForReset = (current_time, compare_time) => {
 	// 604800 seconds in a week
 	const week_seconds = 604800;
 
+	console.log('Checking for reset...');
+	console.log(`Last visit longer than a week: ${current_time - compare_time > week_seconds}`);
+	console.log(
+		`Weekly reset occurred between last activity and current time: ${
+			compare_time % week_seconds < reset_time && current_time % week_seconds > reset_time
+		}`
+	);
+	console.log(`Last visit longer than a day: ${current_time - compare_time > day_seconds}`);
+	console.log(
+		`Daily reset occurred between last activity and current time: ${
+			compare_time % day_seconds < reset_time && current_time % day_seconds > reset_time
+		}`
+	);
+
 	// Reset everything if it has been more than 1 week since last visit
 	if (
 		current_time - compare_time > week_seconds ||
