@@ -928,7 +928,7 @@ const HandleEditSubmit = () => {
 const HandleInactiveTab = () => {
 	document.addEventListener('visibilitychange', () => {
 		if (document.hidden) {
-			session_storage.setItem('last_active', GetNowUTCTimestamp());
+			session_storage.setItem('last_active', Number(GetNowUTCTimestamp()));
 		} else {
 			const last_active = session_storage.getItem('last_active');
 			if (last_active) {
