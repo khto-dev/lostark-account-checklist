@@ -4,6 +4,7 @@ const session_storage = window.sessionStorage;
 let account = local_storage.getItem('account');
 const class_list = [
 	'berserker',
+  'destroyer',
 	'gunlancer',
 	'paladin',
 	'glaivier',
