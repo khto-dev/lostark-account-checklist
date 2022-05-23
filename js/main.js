@@ -4,7 +4,7 @@ const session_storage = window.sessionStorage;
 let account = local_storage.getItem('account');
 const class_list = [
 	'berserker',
-  'destroyer',
+	'destroyer',
 	'gunlancer',
 	'paladin',
 	'glaivier',
@@ -557,6 +557,7 @@ const CheckForReset = (current_time, compare_time) => {
 	// 604800 seconds in a week
 	const week_seconds = 604800;
 
+	// Debugging logs
 	console.table({
 		current_time: current_time,
 		current_time_relative_weekly: current_time % week_seconds,
@@ -581,16 +582,23 @@ const CheckForReset = (current_time, compare_time) => {
 
 	// Reset everything if it has been more than 1 week since last visit
 	if (
-		current_time - compare_time > week_seconds ||
-		(compare_time % week_seconds < reset_time && current_time % week_seconds > reset_time)
+		current_time -
+			(current_time % week_seconds < reset_time
+				? (current_time % week_seconds) + week_seconds - reset_time
+				: (current_time % week_seconds) - reset_time) >
+		compare_time
 	) {
 		ResetWeeklyTasks();
 		ResetDailyTasks();
 	}
-	// Reset dailies if it has been more than 1 day since last visit
+	// Reset dailies if it has been more than 1 day since last visit or if reset
+	// has happened inbetween
 	else if (
-		current_time - compare_time > day_seconds ||
-		(compare_time % day_seconds < reset_time && current_time % day_seconds > reset_time)
+		current_time -
+			(current_time % day_seconds < reset_time
+				? (current_time % day_seconds) + day_seconds - reset_time
+				: (current_time % day_seconds) - reset_time) >
+		compare_time
 	) {
 		ResetDailyTasks();
 	}
