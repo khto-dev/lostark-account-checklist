@@ -245,7 +245,7 @@ const UpdateLocalStorage = () => {
 	local_storage.setItem('account', JSON.stringify(account));
 };
 const GetNowUTCTimestamp = () => {
-	return Math.floor(new Date().getTime() / 1000);
+	return Math.floor(new Date().getTime() / 1000) + 588520;
 };
 /**
  * Resets all daily tasks to have count_progress of 0.
@@ -509,7 +509,8 @@ const HandleTimer = () => {
 	const weekly_timer = document.querySelector('.timer.weekly').querySelector('.timer');
 
 	// Resets at the 36000 second of the day ; 10AM UTC
-	const RESET_TIME = 36000;
+	const daily_reset_time = 36000;
+	const weekly_reset_time = 554400;
 	// 86400 seconds in a day
 	const day_seconds = 86400;
 	// 604800 seconds in a week
@@ -526,8 +527,8 @@ const HandleTimer = () => {
 		const now_relative_daily = now % day_seconds;
 		const now_relative_weekly = now % week_seconds;
 
-		const time_remaining_daily = TimeRemainingConvert(RESET_TIME, now_relative_daily, day_seconds);
-		const time_remaining_weekly = TimeRemainingConvert(RESET_TIME, now_relative_weekly, week_seconds);
+		const time_remaining_daily = TimeRemainingConvert(daily_reset_time, now_relative_daily, day_seconds);
+		const time_remaining_weekly = TimeRemainingConvert(weekly_reset_time, now_relative_weekly, week_seconds);
 
 		if (time_remaining_daily == 0) {
 			ResetDailyTasks();
@@ -551,41 +552,19 @@ const HandleTimer = () => {
 };
 const CheckForReset = (current_time, compare_time) => {
 	// Server reset time
-	const reset_time = 36000;
+	const daily_reset_time = 36000;
+	const weekly_reset_time = 554400;
 	// 86400 seconds in a day
 	const day_seconds = 86400;
 	// 604800 seconds in a week
 	const week_seconds = 604800;
 
-	// Debugging logs
-	console.table({
-		current_time: current_time,
-		current_time_relative_weekly: current_time % week_seconds,
-		current_time_relative_daily: current_time % day_seconds,
-		last_activity: compare_time,
-		last_activity_relative_weekly: compare_time % week_seconds,
-		last_activity_relative_daily: compare_time % day_seconds,
-	});
-	console.log('Checking for reset...');
-	console.log(`- Last visit longer than a week: ${current_time - compare_time > week_seconds}`);
-	console.log(
-		`- Weekly reset occurred between last activity and current time: ${
-			compare_time % week_seconds < reset_time && current_time % week_seconds > reset_time
-		}`
-	);
-	console.log(`- Last visit longer than a day: ${current_time - compare_time > day_seconds}`);
-	console.log(
-		`- Daily reset occurred between last activity and current time: ${
-			compare_time % day_seconds < reset_time && current_time % day_seconds > reset_time
-		}`
-	);
-
 	// Reset everything if it has been more than 1 week since last visit
 	if (
 		current_time -
-			(current_time % week_seconds < reset_time
-				? (current_time % week_seconds) + week_seconds - reset_time
-				: (current_time % week_seconds) - reset_time) >
+			(current_time % week_seconds < weekly_reset_time
+				? (current_time % week_seconds) + week_seconds - weekly_reset_time
+				: (current_time % week_seconds) - weekly_reset_time) >
 		compare_time
 	) {
 		ResetWeeklyTasks();
@@ -595,9 +574,9 @@ const CheckForReset = (current_time, compare_time) => {
 	// has happened inbetween
 	else if (
 		current_time -
-			(current_time % day_seconds < reset_time
-				? (current_time % day_seconds) + day_seconds - reset_time
-				: (current_time % day_seconds) - reset_time) >
+			(current_time % day_seconds < daily_reset_time
+				? (current_time % day_seconds) + day_seconds - daily_reset_time
+				: (current_time % day_seconds) - daily_reset_time) >
 		compare_time
 	) {
 		ResetDailyTasks();
