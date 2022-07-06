@@ -245,7 +245,7 @@ const UpdateLocalStorage = () => {
 	local_storage.setItem('account', JSON.stringify(account));
 };
 const GetNowUTCTimestamp = () => {
-	return Math.floor(new Date().getTime() / 1000) + 588520;
+	return Math.floor(new Date().getTime() / 1000);
 };
 /**
  * Resets all daily tasks to have count_progress of 0.
