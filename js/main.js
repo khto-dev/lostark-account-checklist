@@ -16,6 +16,7 @@ const class_list = [
 	'deadeye',
 	'gunslinger',
 	'sharpshooter',
+	'arcanist',
 	'bard',
 	'sorceress',
 	'deathblade',
