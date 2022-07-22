@@ -621,6 +621,9 @@ Profiles
 	background-image: url('../img/class_banners/sharpshooter.jpg');
 }
 /* Mages */
+.bg.arcanist {
+	background-image: url('../img/class_banners/arcanist.jpg');
+}
 .bg.bard {
 	background-image: url('../img/class_banners/bard.jpg');
 }
